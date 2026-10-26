@@ -4,7 +4,7 @@ id = "java_i2p"
 name = "I2P router (Java)"
 description.en = "Upstream Java I2P router (i2p.i2p) volunteering relay capacity; distinct from the i2pd C++ router"
 
-version = "2.13.1~ynh3"
+version = "2.13.1~ynh4"
 
 maintainers = []
 
