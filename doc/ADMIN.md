@@ -51,3 +51,7 @@ router identity and its accumulated reputation.
 | Router slow after boot | Normal on first boot: it performs a large netDB re-check; watch `journalctl -u __APP__`. |
 | Router not running | `systemctl status __APP__`; the unit restarts itself on failure (exit 143 on stop is a clean JVM shutdown, not an error). |
 | Admin UI "Move the app to a different URL" accepts text after the `/` | The console UI uses absolute URLs, so this app only works at the **root of a domain** — the path field is always empty by design. Moving to another domain (root) works; any path beyond `/` is rejected by the app's change-url script and nothing is moved. |
+
+## Client tunnels (eepsite proxies)
+
+By design this package seeds a relay-only client set: the router console and nothing else — no HTTP/SOCKS proxies, no eepsite, no SAM. Client tunnels are added through the console's *Hidden Services Manager* (I2P tunnels → Create); they are stored in `i2ptunnel.config.d/` inside the data directory, so they survive upgrades and are included in app backups. Upstream defaults if you recreate them by hand: HTTP proxy 4444, HTTPS proxy 4445, SAM 7656, eepsite 7658 (SAM and the eepsite are client apps, toggled from the console's client configuration page). When the `i2pd` app runs on the same server, keep its install-time proxy/SAM choices off these numbers — its questions exist for exactly that.
