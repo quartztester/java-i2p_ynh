@@ -1,10 +1,10 @@
 packaging_format = 2
 
-id = "i2p"
-name = "I2P router"
-description.en = "Volunteer relay strengthening the I2P anonymous network"
+id = "java_i2p"
+name = "I2P router (Java)"
+description.en = "Upstream Java I2P router (i2p.i2p) volunteering relay capacity; distinct from the i2pd C++ router"
 
-version = "2.13.1~ynh2"
+version = "2.13.1~ynh3"
 
 maintainers = []
 

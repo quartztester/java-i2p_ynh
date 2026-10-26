@@ -14,10 +14,12 @@ I2P est un réseau superposé anonyme et chiffré (« eepsites », tunnels, cour
 - Tunnels et configuration persistants (data_dir)
 - Mises à jour automatiques optionnelles du routeur (contrib)
 
+Ce paquet fournit le **routeur Java amont** ([i2p.i2p](https://github.com/i2p/i2p.i2p)). Pour le routeur C++ léger, installez l'app séparée [`i2pd`](https://github.com/quartztester/i2pd_ynh) — les deux peuvent tourner côte à côte.
+
 ## Liens
 
 - Projet amont : <https://geti2p.net>
-- Paquet YunoHost : <https://github.com/quartztester/i2p_ynh>
+- Paquet YunoHost : <https://github.com/quartztester/java-i2p_ynh>
 
 ## Screenshots
 

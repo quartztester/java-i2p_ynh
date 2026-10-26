@@ -36,7 +36,7 @@ if [ "$installed" = "$candidate" ]; then
 fi
 
 log "new release available: $installed -> $candidate; running packaged upgrade"
-if yunohost app upgrade i2p -b >> "$LOG" 2>&1; then
+if yunohost app upgrade java_i2p -b >> "$LOG" 2>&1; then
     log "upgrade to $candidate completed successfully"
 else
     rc=$?
