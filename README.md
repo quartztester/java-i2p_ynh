@@ -15,7 +15,7 @@ This package runs the **upstream Java router** ([i2p.i2p](https://github.com/i2p
 By default the router registers as a **floodfill** (it answers the network's distributed database queries for everyone) — the main way to contribute capacity to I2P. Disable it in the router console (Config → Router manager) if you only want a plain relay. Forward the peer port (default 51427) as **TCP and UDP** on your router so the router reaches "OK" instead of "Firewalled".
 
 [![🌐 Official app website](https://img.shields.io/badge/Official_app_website-darkgreen?style=for-the-badge)](https://geti2p.net)
-![Version: 2.13.1~ynh3](https://img.shields.io/badge/Version-2.13.1~ynh3-rgb%2818,138,11%29?style=for-the-badge)
+![Version: 2.13.1~ynh4](https://img.shields.io/badge/Version-2.13.1~ynh4-rgb%2818,138,11%29?style=for-the-badge)
 
 <div align="center">
 <a href="https://github.com/quartztester/java-i2p_ynh#readme"><img height="100px" src="https://github.com/YunoHost/yunohost-artwork/raw/refs/heads/main/badges/neopossum-badges/badge_more_info_on_the_appstore.svg"/></a>
