@@ -91,16 +91,26 @@ chown "$app:$app" "$data_dir/router.config" 2>/dev/null || true
 
 # Same edit as install: SAMBridge ships registered but startOnLoad=false.
 # Must run while the router is DOWN (clients.config.d is persisted at
-# shutdown). Loopback-only 7656; the i2pd app's SAM lives on 7666.
+# shutdown). Port policy as in install: default 7656 for the first router
+# installed, automatic fallback to 7666 for the second. Existing installs
+# keep whatever port their client file already declares.
 if [ -d "$data_dir" ]; then
-    ynh_script_progression "Enabling the SAM bridge (127.0.0.1:7656)..."
-    ynh_app_setting_set --key=port_sam --value=7656
     sam_file="$data_dir/clients.config.d/01-net.i2p.sam.SAMBridge-clients.config"
     if [ -f "$sam_file" ]; then
         sed -i "s|^clientApp.0.startOnLoad=.*|clientApp.0.startOnLoad=true|" "$sam_file"
+        # Reconcile the setting with the port the file actually declares.
+        file_port=$(grep -oE "sam\.keys [0-9.]+ [0-9]+" "$sam_file" | awk '{print $3}')
+        if [ -n "$file_port" ]; then
+            ynh_app_setting_set --key=port_sam --value="$file_port"
+        fi
     else
+        port_sam="${port_sam:-7656}"
+        if ss -ltn 2>/dev/null | grep -qE "[:.]$port_sam([[:space:]]|\$)"; then
+            port_sam=7666
+        fi
+        ynh_app_setting_set --key=port_sam --value="$port_sam"
         cat > "$sam_file" <<EOF
-clientApp.0.args=sam.keys 127.0.0.1 7656 i2cp.tcp.host=127.0.0.1 i2cp.tcp.port=7654
+clientApp.0.args=sam.keys 127.0.0.1 $port_sam i2cp.tcp.host=127.0.0.1 i2cp.tcp.port=7654
 clientApp.0.delay=120
 clientApp.0.main=net.i2p.sam.SAMBridge
 clientApp.0.name=SAM application bridge
@@ -108,6 +118,7 @@ clientApp.0.startOnLoad=true
 EOF
     fi
     chown "$app:$app" "$sam_file"
+    ynh_script_progression "SAM bridge enabled (127.0.0.1:$(ynh_app_setting_get --key=port_sam))"
 fi
 
 #=================================================

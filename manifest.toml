@@ -43,6 +43,12 @@ ram.runtime = "900M"
     type = "string"
     default = "768m"
 
+    [install.port_sam]
+    ask.en = "SAM bridge port"
+    help.en = "TCP port of this router's SAM bridge for local applications (localhost only). Upstream default 7656; if it is already taken (e.g. the i2pd app's SAM), the install automatically falls back to 7666 so both routers coexist."
+    type = "string"
+    default = "7656"
+
 [resources]
     [resources.system_user]
 
