@@ -119,6 +119,27 @@ systemctl stop "$app"
 sed -i "s|^routerconsole.allowedHosts=.*|# removed|" "$data_dir/router.config"
 echo "routerconsole.allowedHosts=localhost,127.0.0.1,[::1],$domain" >> "$data_dir/router.config"
 chown "$app:$app" "$data_dir/router.config"
+
+# Enable the SAM bridge by default. The distro ships the SAMBridge client
+# registered but startOnLoad=false; downstream apps (qBittorrent's I2P
+# support, torrent clients generally) expect SAM to exist right after
+# install. Loopback-only, port 7656 (the i2pd app puts its SAM on 7666,
+# so both routers can coexist).
+ynh_script_progression "Enabling the SAM bridge (127.0.0.1:7656)..."
+ynh_app_setting_set --key=port_sam --value=7656
+sam_file="$data_dir/clients.config.d/01-net.i2p.sam.SAMBridge-clients.config"
+if [ -f "$sam_file" ]; then
+    sed -i "s|^clientApp.0.startOnLoad=.*|clientApp.0.startOnLoad=true|" "$sam_file"
+else
+    cat > "$sam_file" <<EOF
+clientApp.0.args=sam.keys 127.0.0.1 7656 i2cp.tcp.host=127.0.0.1 i2cp.tcp.port=7654
+clientApp.0.delay=120
+clientApp.0.main=net.i2p.sam.SAMBridge
+clientApp.0.name=SAM application bridge
+clientApp.0.startOnLoad=true
+EOF
+fi
+chown "$app:$app" "$sam_file"
 # 'restart' rather than 'start': always land on a known state.
 systemctl restart "$app"
 

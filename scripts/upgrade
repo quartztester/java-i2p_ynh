@@ -86,6 +86,31 @@ fi
 chown "$app:$app" "$data_dir/router.config" 2>/dev/null || true
 
 #=================================================
+# ENABLE SAM BRIDGE (default for downstream apps)
+#=================================================
+
+# Same edit as install: SAMBridge ships registered but startOnLoad=false.
+# Must run while the router is DOWN (clients.config.d is persisted at
+# shutdown). Loopback-only 7656; the i2pd app's SAM lives on 7666.
+if [ -d "$data_dir" ]; then
+    ynh_script_progression "Enabling the SAM bridge (127.0.0.1:7656)..."
+    ynh_app_setting_set --key=port_sam --value=7656
+    sam_file="$data_dir/clients.config.d/01-net.i2p.sam.SAMBridge-clients.config"
+    if [ -f "$sam_file" ]; then
+        sed -i "s|^clientApp.0.startOnLoad=.*|clientApp.0.startOnLoad=true|" "$sam_file"
+    else
+        cat > "$sam_file" <<EOF
+clientApp.0.args=sam.keys 127.0.0.1 7656 i2cp.tcp.host=127.0.0.1 i2cp.tcp.port=7654
+clientApp.0.delay=120
+clientApp.0.main=net.i2p.sam.SAMBridge
+clientApp.0.name=SAM application bridge
+clientApp.0.startOnLoad=true
+EOF
+    fi
+    chown "$app:$app" "$sam_file"
+fi
+
+#=================================================
 # START SYSTEMD SERVICE
 #=================================================
 
