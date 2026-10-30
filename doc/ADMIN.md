@@ -1,5 +1,7 @@
 # Administering I2P
 
+Single instance only (`multi_instance = false`): the I2P router binds fixed peer ports and one router identity per machine.
+
 The router is managed entirely from its own web console. YunoHost's SSO guards the
 door — arriving through the portal, the console needs no second login.
 

@@ -18,6 +18,7 @@ admindoc = "https://geti2p.net/en/get-i2p-on-debian-and-ubuntu"
 yunohost = ">= 12.0"
 helpers_version = "2.1"
 architectures = ["amd64", "arm64"]
+# single instance: the I2P router binds fixed peer ports and one router identity per machine
 multi_instance = false
 ldap = "not_relevant"
 sso = "not_relevant"

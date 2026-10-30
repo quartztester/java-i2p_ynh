@@ -7,6 +7,12 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 
+# multi_instance=false self-guard: the I2P router binds fixed peer ports and one router identity per machine.
+# YunoHost 12.1 does not refuse a second copy on its own.
+if [[ "$app" != "java_i2p" && -d /etc/yunohost/apps/java_i2p ]]; then
+	ynh_die "Only one instance of this app is supported (already installed as 'java_i2p')."
+fi
+
 #=================================================
 # CHECK THE INSTALL PATH
 #=================================================

@@ -86,7 +86,7 @@ fi
 chown "$app:$app" "$data_dir/router.config" 2>/dev/null || true
 
 #=================================================
-# ENABLE SAM BRIDGE (default for downstream apps)
+# ENABLE SAM BRIDGE (DEFAULT FOR DOWNSTREAM APPS)
 #=================================================
 
 # Same edit as install: SAMBridge ships registered but startOnLoad=false.
