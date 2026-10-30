@@ -37,9 +37,7 @@ ynh_safe_rm "/var/lib/$app"
 # PURGE THE I2P PACKAGE AND APT REPOSITORY
 #=================================================
 
-# Purge the apt package + repository this app installed. Guarded so a
-# cleanup hiccup never blocks app removal; if another i2p install shares
-# the package on this box, the admin can reinstall it afterwards.
+# Purge guarded so a cleanup hiccup never blocks removal; an admin sharing the package can reinstall it afterwards.
 ynh_script_progression "Purging i2p-router package and apt repository..."
 apt-get purge -y -q i2p-router >/dev/null 2>&1 || true
 ynh_safe_rm "/etc/apt/sources.list.d/$app.list"
@@ -50,4 +48,4 @@ ynh_safe_rm "/etc/apt/trusted.gpg.d/$app.gpg"
 #=================================================
 
 
-# (the ext_port firewall rules are closed by the ports resource deprovision)
+# ext_port firewall rules are closed by the ports resource deprovision

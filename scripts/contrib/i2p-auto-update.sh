@@ -1,14 +1,6 @@
 #!/bin/bash
-# i2p auto-update — weekly freshness check for the i2p router (i2p_ynh).
-#
-# The router's own self-updater is disabled by design (it would overwrite
-# dpkg-managed files). This script is the automated substitute: it checks the
-# official I2P apt repo and, only when a newer release exists, performs a
-# proper packaged upgrade via `yunohost app upgrade` so configs/permissions
-# are re-rendered correctly.
-#
-# Opt-in install: copy this file to /usr/local/bin/ and install the cron.d
-# entry shipped next to it (or per README). Log: /var/log/i2p-auto-update.log
+# i2p auto-update: weekly freshness check for i2p_ynh (opt-in: install to /usr/local/bin + cron.d entry; log /var/log/i2p-auto-update.log).
+# The router's self-updater is disabled by design (would overwrite dpkg-managed files); this runs a packaged upgrade via `yunohost app upgrade` only when apt has a newer candidate.
 set -u
 PKG=i2p-router
 LOG=/var/log/i2p-auto-update.log

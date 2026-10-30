@@ -7,7 +7,7 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 
-# multi_instance=false self-guard: the I2P router binds fixed peer ports and one router identity per machine.
+# multi_instance=false self-guard: I2P binds fixed peer ports + one router identity per machine;
 # YunoHost 12.1 does not refuse a second copy on its own.
 if [[ "$app" != "java_i2p" && -d /etc/yunohost/apps/java_i2p ]]; then
 	ynh_die "Only one instance of this app is supported (already installed as 'java_i2p')."
@@ -29,13 +29,7 @@ jvm_xmx="${jvm_xmx:-768m}"
 
 #=================================================
 # I2P FROM ITS OFFICIAL DEBIAN REPOSITORY
-# Debian's own i2p package was removed upstream; deb.i2p.net is the
-# sanctioned distribution. Key: I2P Debian Package Repository
-# 7840E7610F28B904753549D767ECE5605BCF1346. NB: use the Ubuntu keyserver
-# copy — the project's own key URL is intermittently an HTML 404 page,
-# and keys.openpgp.org serves a STALE revision (pre-renewal, expired
-# signing subkey); keys.keyserver.ubuntu.com serves the renewed key.
-#=================================================
+# Get the key from the Ubuntu keyserver only: the project's own key URL is intermittently an HTML 404 and keys.openpgp.org serves a STALE pre-renewal revision (expired signing subkey).
 ynh_script_progression "Installing i2p-router from the official I2P apt repository..."
 ynh_apt_install_dependencies_from_extra_repository \
     --repo="http://deb.i2p.net/ stable main" \
@@ -43,17 +37,10 @@ ynh_apt_install_dependencies_from_extra_repository \
     --key="http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x67ECE5605BCF1346"
 
 #=================================================
-# SEED CONFIG (BEFORE FIRST BOOT)
-# router.updateDisabled: on a native install, updates come from apt —
-# the router must not replace its own dpkg-managed files over the network.
-# router.floodfillParticipant: the point of this package is to volunteer
-# capacity to the network; a floodfill answers distributed-database
-# queries for everyone. Console: Config -> Router manager to turn off.
-# clients.config: seeding router.config makes the router treat this as a
-# provisioned (not brand-new) install, so it will NOT copy the distro's
-# default client apps. We therefore seed a relay-only console client here
-# (loopback-bound, console on $port). The router splits this into
-# clients.config.d/ during first boot.
+# SEED CONFIG
+# router.updateDisabled: apt owns updates; the router must not overwrite dpkg-managed files over the network.
+# router.floodfillParticipant: volunteering network capacity is the point of this package; toggle in Console -> Config -> Router manager.
+# Seeding clients.config marks a provisioned install so the router won't copy distro default apps; it splits into clients.config.d/ during first boot.
 #=================================================
 ynh_script_progression "Seeding router config (peer port $port_ext, floodfill relay, console on $port)..."
 cat > "$data_dir/router.config" <<EOF
@@ -83,9 +70,8 @@ ynh_systemctl --service="$app" --action=start --log_path=systemd --timeout=300
 
 #=================================================
 # FIRST BOOT MUST FINISH BEFORE ANY CONFIG EDIT.
-# The router splits clients.config into clients.config.d/ during first
-# boot; that is what enables the console. Hand-editing router.config
-# mid-first-boot gets clobbered (or clobbers the seeding).
+# First boot splits clients.config into clients.config.d/ (that enables the console);
+# hand-editing router.config mid-boot gets clobbered (or clobbers the seeding).
 #=================================================
 ynh_script_progression "Waiting for the router's first boot to complete..."
 waited=0
@@ -108,7 +94,7 @@ sleep 5
 ynh_script_progression "Configuring nginx (SSO-gated router console)..."
 ynh_config_add_nginx
 
-# Tile logo for the SSO portal (supported override for non-catalog apps)
+# SSO portal tile logo (supported override for non-catalog apps)
 if [ -f "$YNH_APP_BASEDIR/doc/i2p.png" ]; then
     cp "$YNH_APP_BASEDIR/doc/i2p.png" "/usr/share/yunohost/applogos/$app.png"
     yunohost user permission update "$app.main" --logo "/usr/share/yunohost/applogos/$app.png" || true
@@ -116,8 +102,7 @@ fi
 
 #=================================================
 # CONSOLE: allow the public hostname (Host-header check).
-# Must be edited while the router is DOWN: it persists router.config on
-# shutdown and would clobber a live edit.
+# Edit while the router is DOWN: it persists router.config on shutdown and would clobber a live edit.
 #=================================================
 ynh_script_progression "Allowing $domain in the router console's allowedHosts..."
 ynh_app_setting_set --key=console_allowed_hosts --value="localhost,127.0.0.1,[::1],$domain"
@@ -126,12 +111,8 @@ sed -i "s|^routerconsole.allowedHosts=.*|# removed|" "$data_dir/router.config"
 echo "routerconsole.allowedHosts=localhost,127.0.0.1,[::1],$domain" >> "$data_dir/router.config"
 chown "$app:$app" "$data_dir/router.config"
 
-# Enable the SAM bridge by default. The distro ships the SAMBridge client
-# registered but startOnLoad=false; downstream apps (qBittorrent's I2P
-# support, torrent clients generally) expect SAM to exist right after
-# install. Loopback-only. 7656 is the upstream default and belongs to
-# whichever router app was installed first; if it is already taken (e.g.
-# the i2pd app's SAM), automatically fall back to 7666.
+# SAM bridge on by default: distro ships SAMBridge registered but startOnLoad=false; downstream apps (qBittorrent etc.) expect SAM right after install.
+# 7656 is the upstream default; if another router holds it, fall back to 7666. Loopback-only.
 port_busy() { ss -ltn 2>/dev/null | grep -qE "[:.]$1([[:space:]]|\$)"; }
 port_sam="${port_sam:-7656}"
 if port_busy "$port_sam"; then
@@ -156,15 +137,13 @@ clientApp.0.startOnLoad=true
 EOF
 fi
 chown "$app:$app" "$sam_file"
-# 'restart' rather than 'start': always land on a known state.
 systemctl restart "$app"
 
 #=================================================
 # WAIT FOR CONSOLE READINESS
 #=================================================
 
-# Jetty/console takes well over a minute after the cold restart; poll
-# instead of a fixed sleep so slow hardware doesn't get a false alarm.
+# Jetty/console takes well over a minute after cold restart; poll so slow hardware doesn't get a false alarm.
 ready=0
 for i in $(seq 1 24); do
     if curl -fsS -o /dev/null -m 5 "http://127.0.0.1:$port/"; then

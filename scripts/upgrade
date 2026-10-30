@@ -7,16 +7,14 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 
-# NB: $data_dir comes from the app settings (helpers export it) — do not
-# hardcode a path here.
+# $data_dir comes from app settings (helpers export it) — do not hardcode a path.
 
 #=================================================
 # UPDATE I2P-ROUTER FROM THE OFFICIAL APT REPOSITORY
 #=================================================
 
 ynh_script_progression "Installing/updating i2p-router from the official I2P apt repository..."
-# Re-running is how upgrades work: helper re-points the apt source and
-# apt installs the newest version available.
+# Re-running the helper is how upgrades work: re-points the apt source, installs newest version.
 ynh_apt_install_dependencies_from_extra_repository \
     --repo="http://deb.i2p.net/ stable main" \
     --package="i2p-router" \
@@ -45,7 +43,6 @@ fi
 # KEEP UPDATES UNDER APT MANAGEMENT
 #=================================================
 
-# Keep updates under apt management even if an older install left it unset.
 systemctl stop "$app"
 grep -q "^router.updateDisabled=true" "$data_dir/router.config" 2>/dev/null \
     || echo "router.updateDisabled=true" >> "$data_dir/router.config"
@@ -54,9 +51,7 @@ grep -q "^router.updateDisabled=true" "$data_dir/router.config" 2>/dev/null \
 # HEAL A BROKEN FIRST BOOT
 #=================================================
 
-# Self-heal broken first boots: if the console client config was never
-# split out (router would log "we are just a router" and run headless),
-# seed it now.
+# If the console client config was never split out (router logs "we are just a router" and runs headless), seed it now.
 if [ -d "$data_dir" ] && [ ! -d "$data_dir/clients.config.d" ]; then
     ynh_script_progression "Seeding missing router-console client config (healing headless first boot)..."
     mkdir -p "$data_dir/clients.config.d"
@@ -75,8 +70,7 @@ fi
 # RE-ASSERT CONSOLE ALLOWED HOSTS
 #=================================================
 
-# Re-assert allowedHosts (domain may have changed via change-url).
-# Edit while the router is DOWN — it persists router.config on shutdown.
+# Domain may have changed via change-url. Edit while the router is DOWN: router.config is persisted on shutdown.
 if [ -n "${domain:-}" ]; then
     ynh_script_progression "Re-asserting console allowedHosts for $domain..."
     sed -i "s|^routerconsole.allowedHosts=.*|# removed|" "$data_dir/router.config" 2>/dev/null || true
@@ -89,16 +83,12 @@ chown "$app:$app" "$data_dir/router.config" 2>/dev/null || true
 # ENABLE SAM BRIDGE (DEFAULT FOR DOWNSTREAM APPS)
 #=================================================
 
-# Same edit as install: SAMBridge ships registered but startOnLoad=false.
-# Must run while the router is DOWN (clients.config.d is persisted at
-# shutdown). Port policy as in install: default 7656 for the first router
-# installed, automatic fallback to 7666 for the second. Existing installs
-# keep whatever port their client file already declares.
+# Same SAMBridge edit as install (ships startOnLoad=false). Run while the router is DOWN: clients.config.d is persisted at shutdown.
+# Port policy as install: 7656 default, 7666 fallback; existing installs keep the port their client file declares.
 if [ -d "$data_dir" ]; then
     sam_file="$data_dir/clients.config.d/01-net.i2p.sam.SAMBridge-clients.config"
     if [ -f "$sam_file" ]; then
         sed -i "s|^clientApp.0.startOnLoad=.*|clientApp.0.startOnLoad=true|" "$sam_file"
-        # Reconcile the setting with the port the file actually declares.
         file_port=$(grep -oE "sam\.keys [0-9.]+ [0-9]+" "$sam_file" | awk '{print $3}')
         if [ -n "$file_port" ]; then
             ynh_app_setting_set --key=port_sam --value="$file_port"

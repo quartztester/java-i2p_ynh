@@ -33,8 +33,7 @@ ynh_config_add_nginx
 # SPECIFIC MODIFICATIONS
 #=================================================
 
-# Update the console's Host allow-list to the new domain (edit while down:
-# the router persists router.config on shutdown and would clobber a live edit)
+# Edit allowedHosts while the router is DOWN: it persists router.config on shutdown and would clobber a live edit.
 ynh_app_setting_set --key=console_allowed_hosts --value="localhost,127.0.0.1,[::1],$domain"
 systemctl stop "$app"
 sed -i "s|^routerconsole.allowedHosts=.*|# removed|" "$data_dir/router.config"

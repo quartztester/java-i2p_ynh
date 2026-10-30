@@ -29,7 +29,7 @@ chown -R "$app:$app" "$data_dir"
 #=================================================
 
 ynh_script_progression "Ensuring the i2p-router package is installed on this machine..."
-# A restore onto a fresh machine has the data but not the dpkg payload.
+# Restore onto a fresh machine has the data but not the dpkg payload.
 if ! dpkg -s i2p-router >/dev/null 2>&1; then
     ynh_apt_install_dependencies_from_extra_repository \
         --repo="http://deb.i2p.net/ stable main" \
@@ -50,8 +50,7 @@ systemctl restart "$app" || true
 # RE-RENDER THE NGINX CONFIG
 #=================================================
 
-# Re-render the custom nginx snippet (not part of the backup archive; on a
-# fresh machine the vhost dir may not even exist yet).
+# Nginx snippet is not part of the backup archive; re-render (vhost dir may not exist on a fresh machine).
 domain=$(ynh_app_setting_get --key=domain || echo "")
 if [ -n "${domain:-}" ] && [ -d "/etc/nginx/conf.d/$domain.d" ]; then
     ynh_config_add_nginx

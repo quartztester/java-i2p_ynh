@@ -13,17 +13,12 @@ source /usr/share/yunohost/helpers
 #=================================================
 
 ynh_print_info "Declaring files to be backed up..."
-# The whole router data dir (identity, netDB, config) is archived.
-# NB: helpers v2.1 runs collect scripts with cwd = staging dir and NO
-# $BACKUP_DIR — ynh_backup handles relative staging.
+# Trap: helpers v2.1 runs collect scripts with cwd=staging dir and no $BACKUP_DIR; ynh_backup handles relative staging.
 ynh_backup "$data_dir"
 ynh_backup "/etc/systemd/system/$app.service"
-# NB: the apt repo files created during install are transient by design
-# (ynh_apt_install_dependencies_from_extra_repository removes them after
-# installing), so there is nothing apt-related to archive — restore
+# apt repo files from install are transient by design (the helper removes them post-install).
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-# reinstalls the package from the repo when missing.
